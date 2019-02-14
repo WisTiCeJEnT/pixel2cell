@@ -5,6 +5,9 @@ from openpyxl import Workbook
 from openpyxl.styles import Color, PatternFill, Font, Border
 from openpyxl.styles import colors
 from openpyxl.cell import Cell   
+red = []
+green = []
+blue = []
 
 def findHex(c):
     ls = []
@@ -36,30 +39,32 @@ def colorFill(cell,color):
                    fill_type='solid')
     cell.fill = cellFill
 
-wb = Workbook()
-ws = wb.active
+def px2cell(path):
+    wb = Workbook()
+    ws = wb.active
 
-img = cv2.imread('./dota2.png')
-height, width = img.shape[:2]
-b,g,r = cv2.split(img)
-cv2.imshow('r',r)
-cv2.imshow('g',g)
-cv2.imshow('b',b)
+    img = cv2.imread("./Uploaded_data/"+path)
+    height, width = img.shape[:2]
+    b,g,r = cv2.split(img)
+    #cv2.imshow('r',r)
+    #cv2.imshow('g',g)
+    #cv2.imshow('b',b)
+    global red, green, blue
+    red = findHex(r)
+    green = findHex(g)
+    blue = findHex(b)
 
-red = findHex(r)
-green = findHex(g)
-blue = findHex(b)
+    resMerge = np.reshape(mergeHex(r,g,b), (-1, width))
 
-resMerge = np.reshape(mergeHex(r,g,b), (-1, width))
-
-row_count = 0
-col_count = 0
-
-for col in ws.iter_cols(min_col=1, max_col=width, min_row=1, max_row=height):
-    for cell in col:
-        ws[(colnum_string(row_count+1,col_count+1))] = ' '
-        colorFill(cell,resMerge[row_count][col_count].upper())
-        row_count += 1
-    col_count += 1
     row_count = 0
-wb.save('test.xlsx')
+    col_count = 0
+
+    for col in ws.iter_cols(min_col=1, max_col=width, min_row=1, max_row=height):
+        for cell in col:
+            ws[(colnum_string(row_count+1,col_count+1))] = ' '
+            colorFill(cell,resMerge[row_count][col_count].upper())
+            row_count += 1
+        col_count += 1
+        row_count = 0
+    wb.save("./Uploaded_data/"+path+".xlsx")
+    return path+".xlsx"
